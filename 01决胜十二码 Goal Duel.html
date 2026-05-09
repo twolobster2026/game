@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>决胜十二码 - GOAL DUEL</title>
+    <style>
+        /* 全局重置与基础样式 */
+        * {
+            user-select: none;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: white;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 草坪条纹背景 */
+        #stripes {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 30vh;
+            z-index: 1;
+        }
+        .stripe {
+            height: 10vh;
+            width: 100%;
+        }
+        .dark-green {
+            background: #006400;
+        }
+        .light-green {
+            background: #90EE90;
+        }
+
+        /* 球门区域网格 */
+        #goal {
+            position: fixed;
+            bottom: 30vh;
+            left: 16.66%;
+            width: 66.66%;
+            height: 40vh;
+            border: 2px solid green;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            z-index: 2;
+            background: #D3D3D3;
+        }
+        .grid-cell {
+            background: #D3D3D3;
+            border: 1px solid rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        /* 守门员容器与动画 */
+        #goalkeeper {
+            position: fixed;
+            bottom: 30vh;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 3;
+            height: 30vh;
+            transform-origin: bottom center;
+            transition: transform 0.3s ease-out;
+        }
+        #goalkeeper img {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 100%;
+            pointer-events: none;
+        }
+        .goalkeeper-body {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10vh;
+            height: 12.5vh;
+            background: transparent;
+            border-radius: 8px;
+            z-index: 2;
+        }
+        .goalkeeper-head {
+            position: absolute;
+            bottom: 12.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2.5vh;
+            height: 2.5vh;
+            background: transparent;
+            border-radius: 50%;
+            z-index: 3;
+        }
+        .goalkeeper-arms {
+            position: absolute;
+            bottom: 7.5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20vh;
+            height: 5vh;
+            background: transparent;
+            border-radius: 5px;
+            z-index: 1;
+        }
+
+        @keyframes save-center {
+            100% { transform: translateX(-50%); }
+        }
+        @keyframes save-left-45 {
+            0% { transform: translateX(-50%); }
+            25% { transform: translateX(calc(-50% - 10vh)) translateY(0); }
+            50% { transform: translateX(calc(-50% - 10vh)) translateY(-10vh); }
+            100% { transform: translateX(calc(-50% - 10vh)) translateY(-10vh) rotate(-45deg); }
+        }
+        @keyframes save-left-60 {
+            0% { transform: translateX(-50%); }
+            25% { transform: translateX(calc(-50% - 20vh)) translateY(0); }
+            50% { transform: translateX(calc(-50% - 20vh)) translateY(-10vh); }
+            100% { transform: translateX(calc(-50% - 20vh)) translateY(-10vh) rotate(-60deg); }
+        }
+        @keyframes save-right-45 {
+            0% { transform: translateX(-50%); }
+            25% { transform: translateX(calc(-50% + 10vh)) translateY(0); }
+            50% { transform: translateX(calc(-50% + 10vh)) translateY(-10vh); }
+            100% { transform: translateX(calc(-50% + 10vh)) translateY(-10vh) rotate(45deg); }
+        }
+        @keyframes save-right-60 {
+            0% { transform: translateX(-50%); }
+            25% { transform: translateX(calc(-50% + 20vh)) translateY(0); }
+            50% { transform: translateX(calc(-50% + 20vh)) translateY(-10vh); }
+            100% { transform: translateX(calc(-50% + 20vh)) translateY(-10vh) rotate(60deg); }
+        }
+
+        .save-center { animation: save-center 0.4s forwards; }
+        .save-left-45 { animation: save-left-45 0.4s ease-out forwards; }
+        .save-left-60 { animation: save-left-60 0.4s ease-out forwards; }
+        .save-right-45 { animation: save-right-45 0.4s ease-out forwards; }
+        .save-right-60 { animation: save-right-60 0.4s ease-out forwards; }
+
+        /* 信息栏 */
+        #banner {
+            position: fixed;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            color: green;
+            font-size: 24px;
+            z-index: 5;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px white;
+        }
+
+        #score {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #006400;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 5;
+            font-weight: bold;
+        }
+
+        #rounds {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            z-index: 5;
+        }
+
+        #football {
+            position: fixed;
+            bottom: 15vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            border-radius: 12px;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            z-index: 7;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            text-align: center;
+            min-width: 280px;
+        }
+
+        /* 碰撞检测透明区域 (保持不变) */
+        #scoreZone { position: fixed; bottom: 38vh; left: 50%; transform: translateX(-50%); height: 22vh; width: 10vh; background:transparent !important; border: transparent !important; z-index: 2; pointer-events: none; }
+        #scoreZoneHorizontal { position: fixed; bottom: 50vh; left: 50%; transform: translateX(-50%); height: 5vh; width: 20vh; background:transparent !important; z-index: 2; pointer-events: none; }
+        .wing-zone { position: fixed; bottom: 30vh; height: 8vh; width: 4vh; background:transparent !important; z-index: 2; pointer-events: none; }
+        #wingZone1 { left: 45%; border-radius: 8px 0 0 8px; }
+        #wingZone2 { right: 45%; border-radius: 0 8px 8px 0; }
+        #zoneA-upper { position: fixed; bottom: 50vh; left: 36%; transform: translateX(-50%); height: 10vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneA-lower { position: fixed; bottom: 44vh; left: 40%; transform: translateX(-50%); height: 10vh; width: 6vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px 8px 0 0; }
+        #zoneA-leftleg { position: fixed; bottom: 33vh; left: 40%; transform: translateX(-50%); height: 12vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneA-rightleg { position: fixed; bottom: 47vh; left: 43%; transform: translateX(-50%); height: 5vh; width: 14vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneB-upper { position: fixed; bottom: 50vh; left: 64%; transform: translateX(-50%); height: 10vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneB-lower { position: fixed; bottom: 44vh; left: 60%; transform: translateX(-50%); height: 10vh; width: 6vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px 8px 0 0; }
+        #zoneB-leftleg { position: fixed; bottom: 33vh; left: 60%; transform: translateX(-50%); height: 12vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneB-rightleg { position: fixed; bottom: 47vh; left: 57%; transform: translateX(-50%); height: 5vh; width: 14vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneC-left { position: fixed; bottom: 44vh; left: 29%; transform: translateX(-50%); height: 12vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneC-right { position: fixed; bottom: 43vh; left: 32%; transform: translateX(-50%); height: 12vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneC-right2 { position: fixed; bottom: 38vh; left: 34%; transform: translateX(-50%); height: 14vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneC-leftleg { position: fixed; bottom: 30vh; left: 37%; transform: translateX(-50%); height: 10vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneC-rightleg { position: fixed; bottom: 46vh; left: 38%; transform: translateX(-50%); height: 5vh; width: 14vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneD-left { position: fixed; bottom: 44vh; left: 71%; transform: translateX(-50%); height: 12vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneD-right { position: fixed; bottom: 43vh; left: 68%; transform: translateX(-50%); height: 12vh; width: 10vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneD-right2 { position: fixed; bottom: 38vh; left: 66%; transform: translateX(-50%); height: 14vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneD-leftleg { position: fixed; bottom: 30vh; left: 63%; transform: translateX(-50%); height: 10vh; width: 5vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+        #zoneD-rightleg { position: fixed; bottom: 46vh; left: 62%; transform: translateX(-50%); height: 5vh; width: 14vh; background:transparent !important; z-index: 2; pointer-events: none; border-radius: 8px; }
+
+        .footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 0.9rem;
+            color: #ffde9c;
+            opacity: 0.9;
+            font-family: monospace;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ========= 全新开始界面 (GOAL DUEL 主题) ========= */
+        .start-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .start-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 1;
+        }
+        /* 横屏和竖屏背景图动态切换 - 基于媒体查询 */
+        .start-image {
+            background-image: url('images/football游戏初始画面横版.jpg');
+        }
+        @media (orientation: portrait) {
+            .start-image {
+                background-image: url('images/football游戏初始画面竖版.jpg');
+            }
+        }
+        /* 标题容器 + 阴影效果 */
+        .title-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-bottom: 60px;
+            background: rgba(0,0,0,0.6);
+            padding: 20px 40px;
+            border-radius: 60px;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255,215,0,0.6);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+        }
+        .game-title-en {
+            font-family: 'Eras Demi ITC', 'Eras Demi', 'Arial Black', 'Impact', sans-serif;
+            font-size: 5rem;
+            letter-spacing: 4px;
+            color: #FFD966;
+            text-shadow: 5px 5px 0px #B8860B, 8px 8px 0px rgba(0,0,0,0.5);
+            margin-bottom: 10px;
+        }
+        .game-title-zh {
+            font-family: '黑体', 'Microsoft YaHei', 'PingFang SC', 'Helvetica Neue', sans-serif;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #FFF8E7;
+            text-shadow: 2px 2px 0 #2c5e1a;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFF2B5, #FFD966);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: none;
+            font-weight: 800;
+        }
+        /* 开始按钮更精致 */
+        .start-btn-main {
+            position: relative;
+            z-index: 10;
+            background: #ffaa33;
+            font-size: 2rem;
+            padding: 16px 50px;
+            border: none;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #b45f1b;
+            transition: 0.1s;
+            color: #2b1a0e;
+            font-family: inherit;
+            margin-top: 20px;
+        }
+        .start-btn-main:active { transform: translateY(4px); box-shadow: 0 4px 0 #b45f1b; }
+        .start-copyright {
+            position: absolute;
+            bottom: 3%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 0.9rem;
+            color: #ffde9c;
+            opacity: 0.9;
+            font-family: monospace;
+            background: rgba(0,0,0,0.5);
+            padding: 6px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(4px);
+        }
+        .hidden-screen { display: none !important; }
+
+        /* 队伍选择界面 (优化视觉) */
+        .team-select-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,40,0,0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 900;
+            font-family: Arial, sans-serif;
+        }
+        .team-card {
+            background: #f9e7b3;
+            padding: 30px 40px;
+            border-radius: 60px;
+            text-align: center;
+            box-shadow: 0 20px 35px black;
+            border: 3px solid gold;
+            width: 80%;
+            max-width: 400px;
+        }
+        .team-card h2 {
+            color: #2c5e1a;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        .team-row {
+            margin: 20px 0;
+            font-size: 1.4rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .team-row label { font-weight: bold; color: #4a2c18; }
+        .team-select {
+            background: #ffecb3;
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 1.2rem;
+            border: 2px solid #b8860b;
+            font-weight: bold;
+        }
+        .enter-game-btn {
+            background: #4caf50;
+            color: white;
+            font-size: 1.6rem;
+            padding: 12px 30px;
+            border-radius: 50px;
+            border: none;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #2e6b2f;
+            transition: 0.1s;
+            font-weight: bold;
+        }
+        .enter-game-btn:active { transform: translateY(2px); }
+        
+        /* 射门按钮样式 (圆形绿色) */
+        .shoot-button {
+            position: fixed;
+            bottom: 3vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 110px;
+            height: 110px;
+            background: radial-gradient(circle, #4caf50, #2e7d32);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 0 #1b5e20;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            cursor: pointer;
+            z-index: 20;
+            border: 3px solid gold;
+            transition: 0.05s linear;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .shoot-button:active {
+            transform: translateX(-50%) scale(0.95);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+        }
+        .mobile-hint {
+            position: fixed;
+            bottom: 18vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #ffeb3b;
+            padding: 6px 14px;
+            border-radius: 24px;
+            font-size: 14px;
+            z-index: 20;
+            pointer-events: none;
+            white-space: nowrap;
+            font-weight: bold;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+    <!-- 全新开始界面 (带有游戏主标题) -->
+    <div id="startScreen" class="start-screen">
+        <div class="start-image" id="startImage"></div>
+        <div class="title-container">
+            <div class="game-title-en">GOAL DUEL</div>
+            <div class="game-title-zh">决胜十二码</div>
+        </div>
+        <button id="startGameMainBtn" class="start-btn-main">开始游戏</button>
+        <div class="start-copyright">© Twolobster丨Game</div>
+    </div>
+
+    <!-- 队伍选择界面 -->
+    <div id="teamSelectPanel" class="team-select-panel hidden-screen">
+        <div class="team-card">
+            <h2>队伍设置</h2>
+            <div class="team-row">
+                <label>主队 :</label>
+                <span style="font-size:1.8rem; font-weight:bold; color:#006400;">北京国安</span>
+            </div>
+            <div class="team-row">
+                <label>客队 :</label>
+                <select id="awayTeamSelect" class="team-select">
+                    <option value="上海申花">上海申花</option>
+                    <option value="上海海港">上海海港</option>
+                    <option value="成都蓉城">成都蓉城</option>
+                    <option value="山东泰山">山东泰山</option>
+                    <option value="浙江">浙江</option>
+                    <option value="云南玉昆">云南玉昆</option>
+                    <option value="河南">河南</option>
+                    <option value="武汉三镇">武汉三镇</option>
+                </select>
+            </div>
+            <button id="enterMatchBtn" class="enter-game-btn">⚽ 进入比赛</button>
+        </div>
+    </div>
+
+    <!-- 原有游戏界面元素 -->
+    <div id="stripes">
+        <div class="stripe dark-green"></div>
+        <div class="stripe light-green"></div>
+        <div class="stripe dark-green"></div>
+    </div>
+    <div id="goal"></div>
+    <div id="goalkeeper">
+        <img src="images/goalkeeper.png" alt="守门员" onerror="this.style.display='none';">
+        <div class="goalkeeper-arms"></div>
+        <div class="goalkeeper-head"></div>
+        <div class="goalkeeper-body"></div>
+    </div>
+    <div id="banner">国安 国安 北京国安</div>
+    <div id="score">北京国安vs上海申花 0:0</div>
+    <div id="rounds">⚽⚽⚽⚽⚽</div>
+    <div id="football">⚽</div>
+    <div class="message" id="message"></div>
+
+    <!-- 计分区域透明层 (碰撞检测) -->
+    <div id="scoreZone"></div>
+    <div id="scoreZoneHorizontal"></div>
+    <div class="wing-zone" id="wingZone1"></div>
+    <div class="wing-zone" id="wingZone2"></div>
+    <div id="zoneA-upper"></div><div id="zoneA-lower"></div><div id="zoneA-leftleg"></div><div id="zoneA-rightleg"></div>
+    <div id="zoneB-upper"></div><div id="zoneB-lower"></div><div id="zoneB-leftleg"></div><div id="zoneB-rightleg"></div>
+    <div id="zoneC-left"></div><div id="zoneC-right"></div><div id="zoneC-right2"></div><div id="zoneC-leftleg"></div><div id="zoneC-rightleg"></div>
+    <div id="zoneD-left"></div><div id="zoneD-right"></div><div id="zoneD-right2"></div><div id="zoneD-leftleg"></div><div id="zoneD-rightleg"></div>
+
+    <!-- 射门按钮与手机提示 -->
+    <div id="shootBtn" class="shoot-button" style="display: none;">射门靴</div>
+    <div class="footer">© Twolobster丨Game</div>
+
+    <script>
+        // 初始化球门网格
+        const goalContainer = document.getElementById('goal');
+        for(let i = 0; i < 48; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            goalContainer.appendChild(cell);
+        }
+
+        // 游戏核心状态
+        const gameState = {
+            scoreA: 0, scoreB: 0, roundsLeft: 5,
+            currentPlayer: 'A', isPlaying: false, isGameActive: false,
+            currentSave: { type: 'save-center', x: 0, angle: 0 },
+            awayTeamName: '上海申花',
+            gameOverFlag: false
+        };
+
+        const elements = {
+            football: document.getElementById('football'),
+            message: document.getElementById('message'),
+            goal: document.getElementById('goal'),
+            goalkeeper: document.getElementById('goalkeeper'),
+            goalkeeperParts: [
+                document.querySelector('.goalkeeper-arms'),
+                document.querySelector('.goalkeeper-body'),
+                document.querySelector('.goalkeeper-head')
+            ]
+        };
+
+        // 碰撞映射区域
+        const zoneMapping = {
+            'save-center': ['scoreZone', 'scoreZoneHorizontal', 'wingZone1', 'wingZone2'],
+            'save-left-45': ['zoneA-upper', 'zoneA-lower', 'zoneA-leftleg', 'zoneA-rightleg'],
+            'save-left-60': ['zoneC-left', 'zoneC-right', 'zoneC-right2', 'zoneC-leftleg', 'zoneC-rightleg'],
+            'save-right-45': ['zoneB-upper', 'zoneB-lower','zoneB-leftleg', 'zoneB-rightleg'],
+            'save-right-60': ['zoneD-left', 'zoneD-right', 'zoneD-right2', 'zoneD-leftleg', 'zoneD-rightleg']
+        };
+
+        function checkCollision() {
+            const ballRect = elements.football.getBoundingClientRect();
+            return elements.goalkeeperParts.some(part => {
+                const partRect = part.getBoundingClientRect();
+                return checkRotatedCollision(ballRect, partRect);
+            });
+        }
+
+        function checkRotatedCollision(ball, part) {
+            const vh = window.innerHeight * 0.01;
+            const baseX = window.innerWidth / 2;
+            const baseY = elements.goalkeeper.getBoundingClientRect().bottom;
+            const offsetX = gameState.currentSave.x * vh * 10;
+            const offsetY = -10 * vh * 10;
+            const partCenter = {
+                x: baseX + offsetX + part.width/2,
+                y: baseY + offsetY + part.height/2
+            };
+            const ballCenter = {
+                x: ball.left + ball.width/2,
+                y: ball.top + ball.height/2
+            };
+            const rad = -gameState.currentSave.angle * Math.PI / 180;
+            const dx = ballCenter.x - partCenter.x;
+            const dy = ballCenter.y - partCenter.y;
+            const rotatedX = dx * Math.cos(rad) - dy * Math.sin(rad);
+            const rotatedY = dx * Math.sin(rad) + dy * Math.cos(rad);
+            return Math.abs(rotatedX) < part.width/2 && Math.abs(rotatedY) < part.height/2;
+        }
+
+        function checkInNoScoreZone() {
+            const ballRect = elements.football.getBoundingClientRect();
+            const zoneIds = zoneMapping[gameState.currentSave.type] || [];
+            const zones = zoneIds.map(id => document.getElementById(id));
+            return zones.some(zone => {
+                if (!zone) return false;
+                const zoneRect = zone.getBoundingClientRect();
+                return !(ballRect.right < zoneRect.left || ballRect.left > zoneRect.right || ballRect.bottom < zoneRect.top || ballRect.top > zoneRect.bottom);
+            });
+        }
+
+        function updateScoreBoard() {
+            const homeName = "北京国安";
+            const awayName = gameState.awayTeamName;
+            document.getElementById('score').textContent = `${homeName}vs${awayName} ${gameState.scoreA}:${gameState.scoreB}`;
+            if(gameState.currentPlayer === 'A') {
+                document.getElementById('banner').innerHTML = ` ${homeName} 射门 `;
+            } else {
+                document.getElementById('banner').innerHTML = ` ${awayName} 射门 `;
+            }
+        }
+
+        function updateRounds() {
+            document.getElementById('rounds').innerHTML = '⚽'.repeat(gameState.roundsLeft);
+        }
+
+        function showMessage(text, color, duration = 2000) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = text;
+            msgDiv.style.backgroundColor = color;
+            msgDiv.style.opacity = '1';
+            msgDiv.style.pointerEvents = 'none';
+            setTimeout(() => {
+                if (!gameState.gameOverFlag) {
+                    msgDiv.style.opacity = '0';
+                }
+            }, duration);
+        }
+
+        function resetGoalkeeper() {
+            elements.goalkeeper.className = elements.goalkeeper.className.replace(/\bsave-\S+/g, '');
+            elements.goalkeeper.style.transform = 'translateX(-50%)';
+            void elements.goalkeeper.offsetWidth;
+        }
+
+        function resetFootball() {
+            resetGoalkeeper();
+            elements.football.style.transition = 'none';
+            elements.football.style.left = '50%';
+            elements.football.style.bottom = '15vh';
+            setTimeout(() => {
+                elements.football.style.transition = 'all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            }, 10);
+        }
+
+        function animateFootball(isSuccess, goalRect) {
+            elements.football.style.transition = 'all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            if(isSuccess) {
+                const maxX = goalRect.width - 40;
+                const maxY = goalRect.height - 40;
+                const x = goalRect.left + 20 + Math.random() * maxX;
+                const y = goalRect.top + 20 + Math.random() * maxY;
+                elements.football.style.left = `${x}px`;
+                elements.football.style.bottom = `${y + window.scrollY}px`;
+            } else {
+                let x, y;
+                do {
+                    x = Math.random() * window.innerWidth;
+                    y = Math.random() * window.innerHeight;
+                } while(
+                    x > goalRect.left && x < goalRect.right && y > goalRect.top && y < goalRect.bottom
+                );
+                elements.football.style.left = `${x}px`;
+                elements.football.style.bottom = `${y}px`;
+            }
+        }
+
+        function checkGoalArea() {
+            const goalRect = elements.goal.getBoundingClientRect();
+            const ballRect = elements.football.getBoundingClientRect();
+            return ballRect.left >= goalRect.left && ballRect.right <= goalRect.right &&
+                   ballRect.top >= goalRect.top && ballRect.bottom <= goalRect.bottom;
+        }
+
+        function processShot(probability) {
+            if(!gameState.isGameActive || !gameState.isPlaying) return;
+            gameState.isPlaying = false;
+            resetGoalkeeper();
+
+            const rand = Math.random();
+            let animationClass = 'save-center';
+            const collisionMap = {
+                'save-center': { x: 0, angle: 0, type: 'save-center' },
+                'save-left-45': { x: -10, angle: -45, type: 'save-left-45' },
+                'save-left-60': { x: -20, angle: -60, type: 'save-left-60' },
+                'save-right-45': { x: 10, angle: 45, type: 'save-right-45' },
+                'save-right-60': { x: 20, angle: 60, type: 'save-right-60' }
+            };
+            if (rand < 0.1) animationClass = 'save-center';
+            else if (rand < 0.35) animationClass = 'save-left-45';
+            else if (rand < 0.6) animationClass = 'save-left-60';
+            else if (rand < 0.8) animationClass = 'save-right-45';
+            else animationClass = 'save-right-60';
+
+            elements.goalkeeper.classList.add(animationClass);
+            gameState.currentSave = { ...collisionMap[animationClass], type: animationClass };
+
+            const isSuccess = Math.random() < probability;
+            animateFootball(isSuccess, elements.goal.getBoundingClientRect());
+
+            setTimeout(() => {
+                const inGoal = checkGoalArea();
+                const isCollided = checkCollision();
+                const inNoScoreZone = checkInNoScoreZone();
+                if(inGoal && isSuccess && !isCollided && !inNoScoreZone) {
+                    if(gameState.currentPlayer === 'A') gameState.scoreA++;
+                    else gameState.scoreB++;
+                    updateScoreBoard();
+                    showMessage(`${gameState.currentPlayer === 'A' ? '北京国安' : gameState.awayTeamName} 进球！`, '#006400', 1800);
+                } else {
+                    showMessage(`扑出！`, '#8B0000', 1500);
+                }
+                resetFootball();
+                proceedToNextStep();
+            }, 3500);
+        }
+
+        function proceedToNextStep() {
+            if(gameState.currentPlayer === 'A') {
+                gameState.currentPlayer = 'B';
+                showMessage(`${gameState.awayTeamName}队射门`, '#8B0000', 1800);
+                setTimeout(() => { if(gameState.isGameActive) gameState.isPlaying = true; }, 2000);
+            } else {
+                gameState.currentPlayer = 'A';
+                gameState.roundsLeft--;
+                updateRounds();
+                if(gameState.roundsLeft > 0) {
+                    showMessage('北京国安队射门', '#006400', 1800);
+                    setTimeout(() => { if(gameState.isGameActive) gameState.isPlaying = true; }, 2000);
+                } else {
+                    endGame();
+                }
+            }
+            updateScoreBoard();
+        }
+
+        function resetToHome() {
+            gameState.isGameActive = false;
+            gameState.isPlaying = false;
+            gameState.gameOverFlag = false;
+            const shootBtn = document.getElementById('shootBtn');
+            const hint = document.getElementById('mobileHint');
+            if(shootBtn) shootBtn.style.display = 'none';
+            if(hint) hint.style.display = 'none';
+            const msgDiv = document.getElementById('message');
+            msgDiv.style.opacity = '0';
+            msgDiv.innerHTML = '';
+            msgDiv.style.pointerEvents = 'none';
+            resetFootball();
+            elements.football.style.opacity = '0';
+            resetGoalkeeper();
+            const startScreenDiv = document.getElementById('startScreen');
+            const teamSelectDiv = document.getElementById('teamSelectPanel');
+            startScreenDiv.classList.remove('hidden-screen');
+            teamSelectDiv.classList.add('hidden-screen');
+            gameState.scoreA = 0;
+            gameState.scoreB = 0;
+            gameState.roundsLeft = 5;
+            gameState.currentPlayer = 'A';
+            gameState.awayTeamName = '上海申花';
+            updateScoreBoard();
+            updateRounds();
+        }
+
+        function endGame() {
+            gameState.isGameActive = false;
+            gameState.isPlaying = false;
+            gameState.gameOverFlag = true;
+            const home = "北京国安", away = gameState.awayTeamName;
+            const result = gameState.scoreA > gameState.scoreB ? `${home}胜` : (gameState.scoreA < gameState.scoreB ? `${away}胜` : '平局');
+            const msgDiv = document.getElementById('message');
+            msgDiv.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; gap:12px;">
+                    <div>⚽比分 ${gameState.scoreA}:${gameState.scoreB}，${result} 🏆</div>
+                    <button id="playAgainBtnFinal" style="background:#ffaa33; border:none; padding:10px 30px; border-radius:50px; font-size:1.3rem; font-weight:bold; cursor:pointer; color:#2b1a0e;">不服再战</button>
+                </div>
+            `;
+            msgDiv.style.backgroundColor = '#006400';
+            msgDiv.style.opacity = '1';
+            msgDiv.style.pointerEvents = 'auto';
+            const playAgainBtn = document.getElementById('playAgainBtnFinal');
+            if(playAgainBtn) {
+                playAgainBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    msgDiv.style.opacity = '0';
+                    setTimeout(() => { resetToHome(); }, 150);
+                };
+            }
+            const shootBtn = document.getElementById('shootBtn');
+            const hint = document.getElementById('mobileHint');
+            if(shootBtn) shootBtn.style.display = 'none';
+            if(hint) hint.style.display = 'none';
+        }
+
+        function shootAction() {
+            if(!gameState.isGameActive || !gameState.isPlaying) {
+                showMessage("比赛未开始或未轮到射门", "#666", 1200);
+                return;
+            }
+            const probability = gameState.currentPlayer === 'A' ? 0.8 : 0.6;
+            processShot(probability);
+        }
+
+        function startMatch(awayTeam) {
+            gameState.awayTeamName = awayTeam;
+            gameState.scoreA = 0;
+            gameState.scoreB = 0;
+            gameState.roundsLeft = 5;
+            gameState.currentPlayer = 'A';
+            gameState.isGameActive = true;
+            gameState.isPlaying = false;
+            gameState.gameOverFlag = false;
+            updateScoreBoard();
+            updateRounds();
+            resetFootball();
+            elements.football.style.opacity = '1';
+            const shootBtn = document.getElementById('shootBtn');
+            const hint = document.getElementById('mobileHint');
+            if(shootBtn) shootBtn.style.display = 'flex';
+            if(hint) hint.style.display = 'block';
+            showMessage('北京国安队射门', '#006400', 1800);
+            setTimeout(() => {
+                if(gameState.isGameActive) gameState.isPlaying = true;
+            }, 2000);
+        }
+
+        // 界面事件绑定
+        const startScreenDiv = document.getElementById('startScreen');
+        const teamSelectDiv = document.getElementById('teamSelectPanel');
+        const startMainBtn = document.getElementById('startGameMainBtn');
+        const enterMatchBtn = document.getElementById('enterMatchBtn');
+        const awayTeamSelect = document.getElementById('awayTeamSelect');
+        const shootButton = document.getElementById('shootBtn');
+
+        startMainBtn.onclick = () => {
+            startScreenDiv.classList.add('hidden-screen');
+            teamSelectDiv.classList.remove('hidden-screen');
+        };
+        enterMatchBtn.onclick = () => {
+            const selectedAway = awayTeamSelect.value;
+            teamSelectDiv.classList.add('hidden-screen');
+            startMatch(selectedAway);
+        };
+        if(shootButton) {
+            shootButton.addEventListener('click', (e) => { e.preventDefault(); shootAction(); });
+            shootButton.addEventListener('touchstart', (e) => { e.preventDefault(); shootAction(); });
+        }
+        document.addEventListener('keypress', (e) => {
+            if(!gameState.isGameActive || !gameState.isPlaying) return;
+            if((gameState.currentPlayer === 'A' && e.key === '5') || (gameState.currentPlayer === 'B' && e.key === '3')) {
+                shootAction();
+            }
+        });
+        // 初始隐藏相关控件
+        document.getElementById('shootBtn').style.display = 'none';
+        document.getElementById('mobileHint').style.display = 'none';
+        elements.football.style.opacity = '0';
+    </script>
+</body>
+</html>

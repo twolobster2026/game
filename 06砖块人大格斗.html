@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>砖块人格斗-最终修复版</title>
+    <style>
+        :root {
+            --hud-height: 10vh;
+            --game-height: 90vh;
+            --player-width: 1.6667vw;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #f0f0f0;
+            touch-action: none;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(to right, #e0e0e0 95%, white 5%);
+        }
+
+        .bubble {
+            padding: 12px 24px;
+            border-radius: 25px;
+            box-shadow: 
+                4px 4px 8px rgba(0,0,0,0.3),
+                inset -4px -4px 8px rgba(0,0,0,0.2),
+                inset 4px 4px 8px rgba(255,255,255,0.4);
+            font-family: 'Arial Black', sans-serif;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #gameArea {
+            height: var(--game-height);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #hud {
+            height: var(--hud-height);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .entity {
+            position: absolute;
+            transition: left 0.05s linear;
+        }
+
+        .player {
+            width: var(--player-width);
+            height: 10vh;
+            background: #00008b;
+            border-radius: 5px;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .enemy {
+            width: var(--player-width);
+            height: 10vh;
+            border-radius: 5px;
+            box-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+        .enemy.green { background: #32CD32; }
+        .enemy.red { background: #FF4500; }
+
+        .bullet {
+            width: var(--player-width);
+            height: 3px;
+            background: #696969;
+            border-radius: 2px;
+        }
+
+        .rocket {
+            width: calc(var(--player-width) * 2);
+            height: 6px;
+            background: linear-gradient(90deg, #FF8C00, #FF4500);
+            border-radius: 3px;
+        }
+
+        #startBtn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #00008b;
+            color: white;
+        }
+
+        .game-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4em;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+.footer {
+    position: fixed;      /* 固定定位，相对于视口 */
+    bottom: 20px;         /* 距离底部 20px */
+    right: 20px;          /* 距离右侧 20px */
+    background: rgba(0, 0, 0, 0.5);   /* 黑色半透明背景，透明度 0.5 */
+    color: #fff;          /* 白色文字，保证对比度 */
+    padding: 8px 16px;    /* 内边距，让文字不贴边 */
+    border-radius: 20px;  /* 圆角，更柔和 */
+    font-size: 14px;
+    font-family: monospace;
+    backdrop-filter: blur(4px); /* 可选：增加背景模糊效果 */
+    z-index: 1000;        /* 确保在其他内容之上 */
+}
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="hud">
+            <div class="bubble" style="background: #d3d3d3; color: black;">🚀<span id="rocketCount">10</span></div>
+            <div class="bubble" style="background: #FFA500; color: white;">得分: <span id="score">0</span></div>
+            <div class="bubble" style="background: #87CEEB; color: white;">时间: <span id="timer">00:00</span></div>
+        </div>
+        <div id="gameArea">
+            <div id="startBtn" class="bubble">开始游戏</div>
+            <button id="resetBtn" class="bubble" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: #006400; color: white; display: none;">重新开始</button>
+        </div>
+    </div>
+
+<script>
+class BrickFightGame {
+    constructor() {
+        this.config = {
+            bulletSpeed: (100/20)/60 * 100,
+            rocketSpeed: (100/10)/60 * 100,
+            enemySpeed: (100/20)/60 * 100 / 3,
+            playerSpeed: 10,
+            spawnRate: 0.5
+        };
+
+        this.gameArea = document.getElementById('gameArea');
+        this.startBtn = document.getElementById('startBtn');
+        this.resetBtn = document.getElementById('resetBtn');
+        
+        this.initEvents();
+        this.resetState();
+    }
+
+    initEvents() {
+        this.startBtn.addEventListener('click', () => this.startGame());
+        this.resetBtn.addEventListener('click', () => this.resetGame());
+        document.addEventListener('keydown', (e) => this.handleInput(e));
+    }
+
+    resetState() {
+        this.gameArea.querySelectorAll('.entity').forEach(e => e.remove());
+        this.entities = new Map();
+        this.score = 0;
+        this.rockets = 10;
+        this.gameTime = 0;
+        this.enemyStats = { 
+            total: 0, 
+            red: 0, 
+            lastMinute: 0,
+            lastSpawn: performance.now()
+        };
+        this.gameActive = false;
+        this.lastUpdate = 0;
+        
+        this.startBtn.style.display = 'block';
+        this.resetBtn.style.display = 'none';
+        this.updateUI();
+    }
+
+    startGame() {
+        this.resetState();
+        this.gameActive = true;
+        this.startBtn.style.display = 'none';
+        this.resetBtn.style.display = 'block';
+        this.spawnPlayer();
+        this.lastUpdate = performance.now();
+        this.gameLoop();
+    }
+
+    spawnPlayer() {
+        const startY = Math.floor(Math.random() * 9) * 10 + 5;
+        this.player = this.createEntity({
+            type: 'player',
+            x: 5,
+            y: startY
+        });
+    }
+
+    createEntity({ type, x, y, color }) {
+        const entity = document.createElement('div');
+        entity.className = `entity ${type}`;
+        color && entity.classList.add(color);
+        
+        entity.style.left = `${x}%`;
+        entity.style.bottom = `${y}%`;
+        entity.dataset.line = Math.floor(y / 10);
+        
+        this.gameArea.appendChild(entity);
+        this.entities.set(entity, {
+            type,
+            x,
+            y,
+            health: color === 'red' ? 6 : 3,
+            lastUpdate: performance.now()
+        });
+        return entity;
+    }
+
+    handleInput(e) {
+        if (!this.gameActive) return;
+
+        const movePlayer = (dx, dy) => {
+            const currentX = parseFloat(this.player.style.left);
+            const currentY = parseFloat(this.player.style.bottom);
+            
+            const newX = Math.max(0, Math.min(90, currentX + dx));
+            const newY = Math.max(5, Math.min(85, currentY + dy));
+            
+            this.player.style.left = `${newX}%`;
+            this.player.style.bottom = `${newY}%`;
+            this.player.dataset.line = Math.floor(newY / 10);
+        };
+
+        switch(e.key) {
+            case 'ArrowLeft': movePlayer(-this.config.playerSpeed, 0); break;
+            case 'ArrowRight': movePlayer(this.config.playerSpeed, 0); break;
+            case 'ArrowUp': movePlayer(0, this.config.playerSpeed); break;
+            case 'ArrowDown': movePlayer(0, -this.config.playerSpeed); break;
+            case 'a': this.fireBullets(); break;
+            case 's': this.fireRocket(); break;
+        }
+    }
+
+    fireBullets() {
+        const baseX = parseFloat(this.player.style.left);
+        const baseY = parseFloat(this.player.style.bottom);
+        
+        [0, 3.333, 6.666].forEach(offset => {
+            this.createEntity({
+                type: 'bullet',
+                x: baseX + 5 + offset,
+                y: baseY
+            });
+        });
+    }
+
+    fireRocket() {
+        if (this.rockets <= 0) return;
+        this.rockets--;
+        
+        const baseY = parseFloat(this.player.style.bottom);
+        [0, 3.333].forEach(offset => {
+            this.createEntity({
+                type: 'rocket',
+                x: parseFloat(this.player.style.left) + offset,
+                y: baseY
+            });
+        });
+
+        this.updateUI();
+    }
+
+    gameLoop = () => {
+        if (!this.gameActive) return;
+
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - this.lastUpdate) / 1000;
+        this.lastUpdate = currentTime;
+        this.gameTime += deltaTime;
+
+        this.entities.forEach((data, entity) => {
+            switch(data.type) {
+                case 'bullet':
+                    data.x += this.config.bulletSpeed * deltaTime;
+                    entity.style.left = `${data.x}%`;
+                    if (data.x > 100) this.destroyEntity(entity);
+                    break;
+                    
+                case 'rocket':
+                    data.x += this.config.rocketSpeed * deltaTime;
+                    entity.style.left = `${data.x}%`;
+                    if (data.x > 100) this.destroyEntity(entity);
+                    break;
+                    
+                case 'enemy':
+                    data.x -= this.config.enemySpeed * deltaTime;
+                    entity.style.left = `${data.x}%`;
+                    if (data.x <= 0) this.gameOver(false);
+                    break;
+            }
+        });
+
+        this.checkCollisions();
+        this.controlEnemySpawn(deltaTime);
+        this.updateUI();
+        requestAnimationFrame(this.gameLoop);
+    }
+
+    checkCollisions() {
+        this.entities.forEach((rocketData, rocket) => {
+            if (rocketData.type !== 'rocket') return;
+            
+            this.entities.forEach((enemyData, enemy) => {
+                if (enemyData.type === 'enemy' && this.isColliding(rocket, enemy)) {
+                    this.destroyEntity(enemy);
+                    this.score += enemyData.color === 'red' ? 10 : 5;
+                }
+            });
+        });
+
+        this.entities.forEach((bulletData, bullet) => {
+            if (bulletData.type !== 'bullet') return;
+            
+            this.entities.forEach((enemyData, enemy) => {
+                if (enemyData.type === 'enemy' && this.isColliding(bullet, enemy)) {
+                    enemyData.health--;
+                    if (enemyData.health <= 0) {
+                        this.score += enemyData.color === 'red' ? 10 : 5;
+                        this.destroyEntity(enemy);
+                    }
+                    this.destroyEntity(bullet);
+                }
+            });
+        });
+
+        this.entities.forEach((data, entity) => {
+            if (data.type === 'enemy' && this.isColliding(entity, this.player)) {
+                this.gameOver(false);
+            }
+        });
+    }
+
+    controlEnemySpawn(deltaTime) {
+        const currentMinute = Math.floor(this.gameTime / 60);
+        let baseRate = this.config.spawnRate;
+        
+        const minRed = currentMinute === 0 ? 5 : 7;
+        if (this.enemyStats.red < minRed) baseRate *= 2;
+
+        const minuteCount = this.enemyStats.total - this.enemyStats.lastMinute;
+        if (minuteCount < 30) baseRate *= 1.5;
+
+        if (this.enemyStats.total < 200 && 
+            Math.random() < baseRate * deltaTime) {
+            this.spawnEnemy();
+            this.enemyStats.lastMinute = this.enemyStats.total;
+        }
+    }
+
+    spawnEnemy() {
+        const currentMinute = Math.floor(this.gameTime / 60);
+        let redChance = 0.2;
+        
+        const minRed = currentMinute === 0 ? 5 : 7;
+        if (this.enemyStats.red < minRed) redChance = 0.6;
+        
+        const color = Math.random() < redChance ? 'red' : 'green';
+        const line = Math.floor(Math.random() * 9);
+        
+        this.createEntity({
+            type: 'enemy',
+            x: 95,
+            y: line * 10 + 5,
+            color
+        });
+        
+        this.enemyStats.total++;
+        if (color === 'red') this.enemyStats.red++;
+    }
+
+    isColliding(a, b) {
+        const aRect = a.getBoundingClientRect();
+        const bRect = b.getBoundingClientRect();
+        return !(aRect.right < bRect.left || 
+               aRect.left > bRect.right ||
+               aRect.bottom < bRect.top || 
+               aRect.top > bRect.bottom);
+    }
+
+    updateUI() {
+        document.getElementById('score').textContent = this.score;
+        document.getElementById('rocketCount').textContent = this.rockets;
+        
+        const minutes = Math.floor(this.gameTime / 60).toString().padStart(2, '0');
+        const seconds = Math.floor(this.gameTime % 60).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+    }
+
+    gameOver(success) {
+        this.gameActive = false;
+        
+        const message = document.createElement('div');
+        message.className = `game-overlay`;
+        message.textContent = success ? '闯关成功!' : 'GAME OVER';
+        message.style.color = success ? '#FF0000' : '#32CD32';
+        this.gameArea.appendChild(message);
+        
+        if (success) this.createConfetti();
+    }
+
+    createConfetti() {
+        for (let i = 0; i < 200; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti'; // 添加类名
+            confetti.style.cssText = `
+                position: absolute;
+                width: 8px;
+                height: 8px;
+                background: hsl(${Math.random()*360}, 100%, 50%);
+                left: ${Math.random()*100}%;
+                top: -10px;
+                animation: confetti-fall ${2+Math.random()*2}s linear;
+                border-radius: 50%;
+                z-index: 999;
+            `;
+            this.gameArea.appendChild(confetti);
+        }
+    }
+
+    destroyEntity(entity) {
+        this.entities.delete(entity);
+        entity.remove();
+        
+        if ([...this.entities.values()].every(data => data.type !== 'enemy')) {
+            this.gameOver(true);
+        }
+    }
+
+    resetGame() {
+        this.resetState();
+        // 清除所有游戏结束提示和撒花效果
+        this.gameArea.querySelectorAll('.game-overlay').forEach(el => el.remove());
+        this.gameArea.querySelectorAll('.confetti').forEach(c => c.remove());
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    new BrickFightGame();
+});
+
+const style = document.createElement('style');
+style.textContent = `
+@keyframes confetti-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}`;
+document.head.appendChild(style);
+</script>
+
+<div class="footer">
+    © Twolobster
+</div>
+
+</body>
+</html>

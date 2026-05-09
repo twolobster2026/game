@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>质数大挑战</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(145deg, #7ec8e3, #6ba8c4);
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2),
+                       -3px -3px 10px rgba(255,255,255,0.5);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            margin-top: 80px;
+        }
+
+        .bubble {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(145deg, #1a237e, #0d1452);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2),
+                       -3px -3px 10px rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .bubble.prime {
+            background: linear-gradient(145deg, #2e7d32, #1b5e20);
+        }
+
+        .bubble.non-prime {
+            background: linear-gradient(145deg, #c62828, #8e0000);
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(145deg, #4682B4, #36648B);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #c62828, #8e0000);
+            padding: 40px 60px;
+            border-radius: 30px;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            display: none;
+        }
+
+.footer {
+    position: fixed;      /* 固定定位，相对于视口 */
+    bottom: 20px;         /* 距离底部 20px */
+    right: 20px;          /* 距离右侧 20px */
+    background: rgba(0, 0, 0, 0.5);   /* 黑色半透明背景，透明度 0.5 */
+    color: #fff;          /* 白色文字，保证对比度 */
+    padding: 8px 16px;    /* 内边距，让文字不贴边 */
+    border-radius: 20px;  /* 圆角，更柔和 */
+    font-size: 14px;
+    font-family: monospace;
+    backdrop-filter: blur(4px); /* 可选：增加背景模糊效果 */
+    z-index: 1000;        /* 确保在其他内容之上 */
+}
+    </style>
+</head>
+<body>
+    <div id="timer">00:00</div>
+    <div class="grid" id="grid"></div>
+    <button onclick="initGame()">重置游戏</button>
+    <div class="overlay" id="overlay"></div>
+
+    <script>
+        const primes = new Set([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97]);
+        let remainingPrimes = 0;
+        let timer = null;
+        let startTime = null;
+        let isFirstClick = true;
+
+        function generateUniqueNumbers() {
+            let pool = Array.from({length: 100}, (_, i) => i + 1);
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+            return pool.slice(0, 64).sort(() => Math.random() - 0.5);
+        }
+
+        function createBubble(number) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.textContent = number;
+            bubble.onclick = handleClick;
+            if (primes.has(number)) remainingPrimes++;
+            return bubble;
+        }
+
+        function handleClick() {
+            if (isFirstClick) {
+                startTimer();
+                isFirstClick = false;
+            }
+            if (this.classList.contains('prime') || this.classList.contains('non-prime')) return;
+
+            const num = parseInt(this.textContent);
+            if (primes.has(num)) {
+                this.classList.add('prime');
+                if (--remainingPrimes === 0) endGame();
+            } else {
+                this.classList.add('non-prime');
+            }
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                document.getElementById('timer').textContent = 
+                    `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            const overlay = document.getElementById('overlay');
+            overlay.textContent = `恭喜你闯关成功，用时${document.getElementById('timer').textContent}`;
+            overlay.style.display = 'block';
+        }
+
+        function initGame() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            remainingPrimes = 0;
+            isFirstClick = true;
+            clearInterval(timer);
+            document.getElementById('timer').textContent = '00:00';
+            document.getElementById('overlay').style.display = 'none';
+
+            generateUniqueNumbers().forEach(num => {
+                grid.appendChild(createBubble(num));
+            });
+        }
+
+        initGame();
+    </script>
+
+<div class="footer">
+    © Twolobster
+</div>
+
+</body>
+</html>

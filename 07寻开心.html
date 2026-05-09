@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>寻开心小游戏</title>
+    <style>
+        body {
+            background-color: white;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        .bubble {
+            background-color: #006400;
+            color: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            transform: perspective(100px) rotateX(5deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            cursor: pointer;
+            border: none;
+            position: relative;
+            z-index: 100;
+        }
+
+        #gameGrid {
+            display: grid;
+            gap: 15px;
+            position: absolute;
+        }
+
+        .emoji {
+            font-size: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+
+        .emoji:hover {
+            transform: scale(1.2);
+        }
+
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .level-text {
+            position: absolute;
+            font-size: 40px;
+            color: #006400;
+            z-index: 999;
+            animation: popIn 0.5s ease-out;
+        }
+
+.footer {
+    position: fixed;      /* 固定定位，相对于视口 */
+    bottom: 20px;         /* 距离底部 20px */
+    right: 20px;          /* 距离右侧 20px */
+    background: rgba(0, 0, 0, 0.5);   /* 黑色半透明背景，透明度 0.5 */
+    color: #fff;          /* 白色文字，保证对比度 */
+    padding: 8px 16px;    /* 内边距，让文字不贴边 */
+    border-radius: 20px;  /* 圆角，更柔和 */
+    font-size: 14px;
+    font-family: monospace;
+    backdrop-filter: blur(4px); /* 可选：增加背景模糊效果 */
+    z-index: 1000;        /* 确保在其他内容之上 */
+}
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <button id="startBtn" class="bubble">开始游戏😊</button>
+    <div id="timer" class="bubble">10</div>
+
+    <script>
+        // 关卡配置
+        const levels = [
+            { rows: 4, cols: 4, happy: 8, sad: 8, time: 10 },    // 第一关
+            { rows: 5, cols: 5, happy: 11, sad: 14, time: 10 },  // 第二关
+            { rows: 6, cols: 6, happy: 10, sad: 20, time: 10 },  // 第三关
+            { rows: 6, cols: 6, happy: 6, sad: 30, time: 10 },   // 第四关
+            { rows: 8, cols: 8, happy: 2, sad: 62, time: 8 },   // 第五关
+            { rows: 9, cols: 9, happy: 10, sad: 71, time: 15 },  // 第六关（15秒）
+            { rows: 9, cols: 9, happy: 6, sad: 75, time: 12 },   // 第七关
+            { rows: 9, cols: 9, happy: 2, sad: 79, time: 10 },   // 第八关
+            { rows: 10, cols: 10, happy: 5, sad: 95, time: 15 }, // 第九关
+            { rows: 10, cols: 10, happy: 1, sad: 99, time: 5 }   // 第十关
+        ];
+
+        let currentLevel = 0;
+        let timer;
+        let gameGrid;
+
+        // 创建游戏网格
+        function createGameGrid(level) {
+            gameGrid = document.createElement('div');
+            gameGrid.id = 'gameGrid';
+            gameGrid.style.gridTemplateColumns = `repeat(${level.cols}, 1fr)`;
+            
+            const total = level.happy + level.sad;
+            const positions = Array.from({length: total}, (_,i) => i);
+            
+            for(let i = 0; i < total; i++) {
+                const emoji = document.createElement('div');
+                const randomIndex = Math.floor(Math.random() * positions.length);
+                const pos = positions.splice(randomIndex, 1)[0];
+                
+                emoji.className = 'emoji';
+                emoji.textContent = pos < level.happy ? '😊' : '😟';
+                if(pos < level.happy) emoji.dataset.happy = true;
+                
+                emoji.onclick = function() {
+                    if(this.textContent === '😊') this.remove();
+                    checkWin();
+                }
+                
+                gameGrid.appendChild(emoji);
+            }
+            
+            document.body.appendChild(gameGrid);
+            centerGameGrid(level);
+        }
+
+        // 居中游戏网格
+        function centerGameGrid(level) {
+            const emojiSize = 45;
+            const gridWidth = level.cols * emojiSize;
+            const gridHeight = level.rows * emojiSize;
+            
+            gameGrid.style.width = `${gridWidth}px`;
+            gameGrid.style.height = `${gridHeight}px`;
+            gameGrid.style.transform = `translate(-50%, -50%)`;
+            gameGrid.style.left = '50%';
+            gameGrid.style.top = '50%';
+        }
+
+        // 检查胜利条件
+        function checkWin() {
+            if(!document.querySelector('[data-happy]')) {
+                if(currentLevel === levels.length - 1) {
+                    gameOver(true);
+                } else {
+                    currentLevel++;
+                    startLevel();
+                }
+            }
+        }
+
+        // 开始关卡
+        function startLevel() {
+            clearInterval(timer);
+            document.body.innerHTML = '<div id="timer" class="bubble">' + levels[currentLevel].time + '</div>';
+            
+            const levelText = document.createElement('div');
+            levelText.className = 'level-text';
+            levelText.textContent = `第${['一','二','三','四','五','六','七','八','九','十'][currentLevel]}关`;
+            document.body.appendChild(levelText);
+            
+            setTimeout(() => {
+                levelText.remove();
+                createGameGrid(levels[currentLevel]);
+                startTimer(levels[currentLevel].time);
+            }, 2000);
+        }
+
+        // 启动倒计时
+        function startTimer(time) {
+            let remaining = time;
+            const timerDiv = document.getElementById('timer');
+            timerDiv.textContent = remaining;
+            
+            timer = setInterval(() => {
+                remaining--;
+                timerDiv.textContent = remaining;
+                
+                if(remaining <= 0) {
+                    if(document.querySelector('[data-happy]')) {
+                        gameOver(false);
+                    }
+                }
+            }, 1000);
+        }
+
+        // 游戏结束处理
+        function gameOver(success) {
+            clearInterval(timer);
+            document.body.innerHTML = '';
+            
+            if(success) {
+                const winText = document.createElement('div');
+                winText.className = 'bubble';
+                winText.style.backgroundColor = '#FF69B4';
+                winText.textContent = '恭喜你！寻找到所有开心！';
+                document.body.appendChild(winText);
+                
+                setTimeout(createResetButton, 3000);
+            } else {
+                const loseText = document.createElement('div');
+                loseText.className = 'level-text';
+                loseText.textContent = 'GAME OVER';
+                document.body.appendChild(loseText);
+                setTimeout(createResetButton, 3000);
+            }
+        }
+
+        // 创建重置按钮
+        function createResetButton() {
+            document.body.innerHTML = '';
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'bubble';
+            resetBtn.textContent = '再玩一次';
+            resetBtn.onclick = () => {
+                currentLevel = 0;
+                startLevel();
+            };
+            document.body.appendChild(resetBtn);
+            document.body.appendChild(document.createElement('div')).id = 'timer';
+        }
+
+        // 初始化开始按钮
+        document.getElementById('startBtn').onclick = () => {
+            document.getElementById('startBtn').remove();
+            startLevel();
+        };
+    </script>
+
+<div class="footer">
+    © Twolobster
+</div>
+
+</body>
+</html>

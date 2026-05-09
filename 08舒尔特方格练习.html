@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>舒尔特方格挑战</title>
+    <style>
+        body {
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: white;
+            background: #87CEEB;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            transform: perspective(100px) rotateX(10deg);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            max-width: 600px;
+            margin: 80px auto;
+        }
+
+        .cell {
+            background-color: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+
+        .cell.correct {
+            background-color: #98FB98;
+        }
+
+        #resetBtn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 30px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #resetBtn:hover {
+            background-color: #45a049;
+        }
+
+        .congrats {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #8B0000;
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 999;
+            animation: pop 0.5s ease-out;
+        }
+
+.footer {
+    position: fixed;      /* 固定定位，相对于视口 */
+    bottom: 20px;         /* 距离底部 20px */
+    right: 20px;          /* 距离右侧 20px */
+    background: rgba(0, 0, 0, 0.5);   /* 黑色半透明背景，透明度 0.5 */
+    color: #fff;          /* 白色文字，保证对比度 */
+    padding: 8px 16px;    /* 内边距，让文字不贴边 */
+    border-radius: 20px;  /* 圆角，更柔和 */
+    font-size: 14px;
+    font-family: monospace;
+    backdrop-filter: blur(4px); /* 可选：增加背景模糊效果 */
+    z-index: 1000;        /* 确保在其他内容之上 */
+}
+
+        @keyframes pop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            80% { transform: translate(-50%, -50%) scale(1.1); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div id="timer">00:00</div>
+    <div class="grid-container"></div>
+    <button id="resetBtn">重新开始</button>
+
+    <script>
+        let currentNumber = 1;
+        let timer;
+        let seconds = 0;
+        let isGameStarted = false;
+
+        // 生成随机数字数组
+        function generateNumbers() {
+            const numbers = Array.from({length: 25}, (_, i) => i + 1);
+            return numbers.sort(() => Math.random() - 0.5);
+        }
+
+        // 创建游戏面板
+        function createGrid() {
+            const container = document.querySelector('.grid-container');
+            container.innerHTML = '';
+            const numbers = generateNumbers();
+            
+            numbers.forEach(num => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = num;
+                cell.addEventListener('click', handleClick);
+                container.appendChild(cell);
+            });
+        }
+
+        // 处理点击事件
+        function handleClick(e) {
+            if (!isGameStarted) {
+                startTimer();
+                isGameStarted = true;
+            }
+            
+            const selectedNum = parseInt(e.target.textContent);
+            
+            if (selectedNum === currentNumber) {
+                e.target.classList.add('correct');
+                currentNumber++;
+                
+                if (currentNumber > 25) {
+                    endGame();
+                }
+            }
+        }
+
+        // 启动计时器
+        function startTimer() {
+            timer = setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${secs}`;
+            }, 1000);
+        }
+
+        // 结束游戏
+        function endGame() {
+            clearInterval(timer);
+            showCongrats();
+            isGameStarted = false;
+        }
+
+        // 显示完成提示
+        function showCongrats() {
+            const congrats = document.createElement('div');
+            congrats.className = 'congrats';
+            congrats.textContent = `恭喜你闯关成功，用时 ${document.getElementById('timer').textContent}`;
+            document.body.appendChild(congrats);
+        }
+
+        // 重置游戏
+        function resetGame() {
+            clearInterval(timer);
+            currentNumber = 1;
+            seconds = 0;
+            isGameStarted = false;
+            document.getElementById('timer').textContent = '00:00';
+            document.querySelectorAll('.congrats').forEach(el => el.remove());
+            createGrid();
+        }
+
+        // 初始化游戏
+        createGrid();
+        document.getElementById('resetBtn').addEventListener('click', resetGame);
+    </script>
+
+<div class="footer">
+    © Twolobster
+</div>
+
+</body>
+</html>

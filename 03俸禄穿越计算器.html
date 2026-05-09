@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>月收入穿越计算器 · 汉唐明清银子换算</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', '华文楷体', 'KaiTi', 'Microsoft YaHei', serif;
+            background: #f3efe5;
+            background-image: linear-gradient(145deg, #e8e0d0 0%, #f9f3e7 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 251, 240, 0.9);
+            backdrop-filter: blur(4px);
+            border-radius: 40px 40px 30px 30px;
+            box-shadow: 0 20px 40px rgba(60, 40, 20, 0.25), 0 4px 12px rgba(0,0,0,0.1), inset 0 1px 4px #fff4e0;
+            border: 1px solid #dacbb8;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .header {
+            background: #9b7b5c;
+            background: linear-gradient(145deg, #8b6d4e, #a88765);
+            padding: 28px 24px 20px 24px;
+            text-align: center;
+            color: #fef6e6;
+            text-shadow: 2px 2px 0 #4d3a28;
+            border-bottom: 3px solid #6b4f37;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 500;
+            letter-spacing: 6px;
+            margin-bottom: 8px;
+            font-family: '华文楷体', 'KaiTi', cursive;
+        }
+        .header p {
+            font-size: 1rem;
+            background: #3f2e1e88;
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            backdrop-filter: blur(2px);
+            border: 1px solid #ebd5b0;
+        }
+        .content {
+            padding: 30px 28px 20px;
+        }
+        .input-area {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            background: #e5d8c6;
+            padding: 20px 25px;
+            border-radius: 60px 60px 30px 30px;
+            box-shadow: inset 0 2px 6px #c0a78e, 0 6px 10px rgba(0,0,0,0.05);
+        }
+        .input-box {
+            flex: 3 1 250px;
+        }
+        .input-box label {
+            display: block;
+            font-size: 0.9rem;
+            color: #4d3a27;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .input-box input {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1.3rem;
+            border: none;
+            background: #fffcf2;
+            border-radius: 50px;
+            box-shadow: inset 0 4px 8px #bc9f84, 0 2px 4px #ffeee0;
+            font-weight: bold;
+            color: #3b2c1b;
+            outline: 2px solid transparent;
+            transition: 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+        .input-box input:focus {
+            outline: 2px solid #b38b5f;
+            background: #ffffff;
+        }
+        .input-box input::placeholder {
+            color: #ab9a86;
+            font-weight: normal;
+            font-size: 1rem;
+        }
+        .btn-area {
+            flex: 1 1 auto;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .calc-btn {
+            background: #6d4f32;
+            border: none;
+            color: #fef3dd;
+            font-size: 1.4rem;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #3f2e1d, 0 6px 12px #3b2e1f;
+            transition: 0.08s linear;
+            border: 1px solid #af946a;
+            font-family: '华文楷体', 'KaiTi', serif;
+        }
+        .calc-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #3f2e1d, 0 6px 12px #3b2e1f;
+        }
+        .calc-btn:hover {
+            background: #7f6042;
+        }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 30px 0 20px;
+        }
+        .dynasty-card {
+            background: #e7dac8;
+            border-radius: 40px 40px 20px 20px;
+            padding: 18px 8px 14px;
+            text-align: center;
+            box-shadow: 0 8px 0 #ac8f72, 0 6px 12px #917b63;
+            border: 1px solid #fbeed9;
+        }
+        .dynasty-card .name {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #5a3f29;
+            line-height: 1;
+            margin-bottom: 10px;
+            font-family: '华文楷体', 'KaiTi', serif;
+            text-shadow: 2px 2px 0 #dac09e;
+        }
+        .dynasty-card .silver {
+            font-size: 2rem;
+            font-weight: 700;
+            background: #fdf0db;
+            border-radius: 30px;
+            padding: 8px 5px;
+            margin: 6px 10px;
+            color: #2b1d12;
+            border: 1px solid #b5946f;
+            box-shadow: inset 0 2px 6px #bd9e7a;
+            font-family: 'Courier New', monospace;
+        }
+        .dynasty-card .unit {
+            font-size: 0.9rem;
+            color: #4f3c29;
+            margin-top: 4px;
+        }
+        .dynasty-card .hint {
+            font-size: 0.7rem;
+            color: #6e5b48;
+            background: #cdbbaa70;
+            border-radius: 30px;
+            padding: 4px 6px;
+            margin: 8px 5px 0;
+        }
+        .life-section {
+            background: #cfbea8;
+            background: linear-gradient(145deg, #dacbb6, #cbb99f);
+            border-radius: 40px 40px 30px 30px;
+            padding: 25px 25px 20px;
+            margin: 25px 0 15px;
+            border: 1px solid #f4e2cc;
+            box-shadow: inset 0 2px 8px #f2e4d2, 0 6px 12px #7c6954;
+        }
+        .life-section h2 {
+            font-size: 1.8rem;
+            color: #2d1f12;
+            border-left: 10px solid #9e7b58;
+            padding-left: 20px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            text-shadow: 1px 1px 0 #e5cfb5;
+        }
+        .ming-qing-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .life-card {
+            background: #efe1cf;
+            border-radius: 30px;
+            padding: 18px 25px;
+            box-shadow: 0 4px 0 #836e54, inset 0 1px 6px #fff2dd;
+            border: 1px solid #fff0da;
+        }
+        .life-card h3 {
+            font-size: 1.5rem;
+            color: #543f2b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px dashed #b99973;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .life-card h3 span {
+            background: #9b7b5c;
+            color: #f9efde;
+            font-size: 1.2rem;
+            padding: 4px 18px;
+            border-radius: 40px;
+        }
+        .life-desc {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #2c1f14;
+            background: #fcf3e6;
+            padding: 16px 18px;
+            border-radius: 28px;
+            box-shadow: inset 0 1px 5px #c0a78e;
+            margin-bottom: 10px;
+        }
+        .life-desc strong {
+            color: #9f5125;
+            font-weight: 600;
+        }
+        .footnote {
+            font-size: 0.85rem;
+            color: #4f3f2f;
+            background: #fff2e2;
+            padding: 12px 20px;
+            border-radius: 50px;
+            margin-top: 20px;
+            border: 1px solid #dac09e;
+            text-align: center;
+        }
+        .copyright {
+            text-align: center;
+            padding: 16px 20px 18px;
+            background: #9a896f40;
+            color: #3d2e1e;
+            font-size: 1rem;
+            border-top: 1px dashed #ac9b84;
+            backdrop-filter: blur(2px);
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .note-small {
+            font-size: 0.8rem;
+            color: #4b3f32;
+            margin-top: 10px;
+        }
+        .highlight {
+            background: #bb9d7e;
+            color: #23190f;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h1>💰 俸禄·穿越计算器</h1>
+            <p>汉 · 唐 · 明 · 清 银两比价</p>
+        </div>
+        <div class="content">
+            <div class="input-area">
+                <div class="input-box">
+                    <label for="monthlyIncome">🔹 你的月收入 (人民币 元)</label>
+                    <input type="number" id="monthlyIncome" placeholder="例如 10000" value="10000" min="0" step="100">
+                </div>
+                <div class="btn-area">
+                    <button class="calc-btn" id="calcBtn">换算</button>
+                </div>
+            </div>
+            <!-- 四朝代银两结果卡片 -->
+            <div class="result-grid" id="resultGrid">
+                <div class="dynasty-card">
+                    <div class="name">汉</div>
+                    <div class="silver" id="hanSilver">2.22</div>
+                    <div class="unit">两</div>
+                    <div class="hint">· 汉宣帝时期 ·</div>
+                </div>
+                <div class="dynasty-card">
+                    <div class="name">唐</div>
+                    <div class="silver" id="tangSilver">1.41</div>
+                    <div class="unit">两</div>
+                    <div class="hint">· 贞观年间 ·</div>
+                </div>
+                <div class="dynasty-card">
+                    <div class="name">明</div>
+                    <div class="silver" id="mingSilver">8.83</div>
+                    <div class="unit">两</div>
+                    <div class="hint">· 万历年间 ·</div>
+                </div>
+                <div class="dynasty-card">
+                    <div class="name">清</div>
+                    <div class="silver" id="qingSilver">22.22</div>
+                    <div class="unit">两</div>
+                    <div class="hint">· 乾隆年间 ·</div>
+                </div>
+            </div>
+            <!-- 明清阶层 · 生活图鉴 -->
+            <div class="life-section" id="lifeSection">
+                <h2>📜 明清阶层 & 生活图鉴</h2>
+                <div class="ming-qing-wrap">
+                    <div class="life-card" id="mingLifeCard">
+                        <h3><span>明·万历</span> 你的位置</h3>
+                        <div class="life-desc" id="mingLifeDesc">
+                            月入折合 <strong>8.83两</strong>，属于中产阶层。收入超过七品知县年薪，生活富足，可呼朋引伴下馆子，一顿1两银子（约1133元）毫不心疼。
+                        </div>
+                    </div>
+                    <div class="life-card" id="qingLifeCard">
+                        <h3><span>清·乾隆</span> 你的位置</h3>
+                        <div class="life-desc" id="qingLifeDesc">
+                            月入折合 <strong>22.22两</strong>，属于中产阶层。可攒钱买房，在南京能买个小院，实现“置业梦”。相当于城市里的伙计头或高级匠人，手头宽裕。
+                        </div>
+                    </div>
+                </div>
+                <div class="footnote">
+                    以现代大米3元/斤为基准，按各朝代粮价、度量衡折算（汉代丰收年/唐代贞观/明代万历/清代乾隆）。实际购买力因时因地浮动，此结果供趣味参考。
+                </div>
+            </div>
+        </div>
+        <div class="copyright">
+            © Twolobster ｜ 我是李工也是涛哥
+        </div>
+    </div>
+    <script>
+        (function() {
+            // 汇率定义：1两银子 ≈ 人民币 (基于3元/斤大米)
+            const RATES = {
+                han: 4500,   // 汉: 4500元/两 (宣帝丰收，1500斤米)
+                tang: 7080,  // 唐: 7080元/两 (贞观，2360斤米)
+                ming: 1133,  // 明: 1133元/两 (万历，377.6斤米)
+                qing: 450    // 清: 450元/两 (乾隆，150斤米)
+            };
+
+            // 根据月收入(元)划分档次
+            function getLevel(income) {
+                if (income < 3000) return '贫困';
+                if (income < 6000) return '温饱';
+                if (income < 10000) return '小康';
+                if (income < 20000) return '中产';
+                return '富裕';
+            }
+
+            // 各档次描述模板 (明清)
+            const levelDescriptions = {
+               贫困: {
+                    ming: (liang) => `月入折合明朝 ${liang.toFixed(2)}两，属于底层平民，勉强糊口，挣扎在温饱线。每日为柴米油盐发愁，如北宋洛阳山民。`,
+                    qing: (liang) => `月入折合清朝 ${liang.toFixed(2)}两，属于城市贫民或乡村赤贫户，租住陋室，饮食粗粝，难见荤腥。`
+                },
+                温饱: {
+                    ming: (liang) => `月入折合明朝 ${liang.toFixed(2)}两，相当于有稳定工作的伙计或技术工人，能偶尔添点肉食，一家老小安稳度日。`,
+                    qing: (liang) => `月入折合清朝 ${liang.toFixed(2)}两，相当于绿营兵或普通长工的年收入，可维持一家温饱，实现“温饱自由”。`
+                },
+                小康: {
+                    ming: (liang) => `月入折合明朝 ${liang.toFixed(2)}两，属于城市中产，生活从容。可偶尔下馆子，买时令瓜果，添置新衣。`,
+                    qing: (liang) => `月入折合清朝 ${liang.toFixed(2)}两，相当于城里伙计头或高级匠人，手头宽裕，可存钱做小买卖或供孩子读书。`
+                },
+                中产: {
+                    ming: (liang) => `月入折合明朝 ${liang.toFixed(2)}两，属于精英阶层，收入超过七品知县年薪（45两/年）。生活富足，呼朋引伴吃1两银子大餐不心疼。`,
+                    qing: (liang) => `月入折合清朝 ${liang.toFixed(2)}两，属于中产，可以攒钱买房，在南京买个小院或地基，实现“置业梦”。`
+                },
+                富裕: {
+                    ming: (liang) => `月入折合明朝 ${liang.toFixed(2)}两，属于富裕阶层。可考虑买仆人（2-10两），或买上等烟草、书籍，享受精致生活。`,
+                    qing: (liang) => `月入折合清朝 ${liang.toFixed(2)}两，相当于中等庄园主。可在家乡买几十亩地，收租纳福，成为受人尊敬的“员外”。`
+                }
+            };
+
+            // 更新界面
+            function updateCalculation() {
+                const incomeInput = document.getElementById('monthlyIncome');
+                let income = parseFloat(incomeInput.value);
+                // 处理无效输入
+                if (isNaN(income) || income < 0) {
+                    income = 0;
+                    incomeInput.value = 0;
+                } else if (income > 1e8) {
+                    income = 1e8; // 限制过大数字
+                    incomeInput.value = 1e8;
+                }
+
+                // 计算各朝代银两 (保留两位小数)
+                const hanLiang = income / RATES.han;
+                const tangLiang = income / RATES.tang;
+                const mingLiang = income / RATES.ming;
+                const qingLiang = income / RATES.qing;
+
+                // 更新银两显示
+                document.getElementById('hanSilver').innerText = hanLiang.toFixed(2);
+                document.getElementById('tangSilver').innerText = tangLiang.toFixed(2);
+                document.getElementById('mingSilver').innerText = mingLiang.toFixed(2);
+                document.getElementById('qingSilver').innerText = qingLiang.toFixed(2);
+
+                // 根据收入确定档次
+                const level = getLevel(income);
+                const mingDescFunc = levelDescriptions[level].ming;
+                const qingDescFunc = levelDescriptions[level].qing;
+
+                // 生成描述 (传入对应的银两数)
+                const mingDesc = mingDescFunc(mingLiang);
+                const qingDesc = qingDescFunc(qingLiang);
+
+                // 更新明清生活卡片 (保留原强调整)
+                document.getElementById('mingLifeDesc').innerHTML = mingDesc.replace(/(\d+\.?\d*两)/g, '<strong>$1</strong>');
+                document.getElementById('qingLifeDesc').innerHTML = qingDesc.replace(/(\d+\.?\d*两)/g, '<strong>$1</strong>');
+            }
+
+            // 绑定按钮点击事件
+            document.getElementById('calcBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                updateCalculation();
+            });
+
+            // 页面加载时自动计算一次 (默认10000)
+            window.addEventListener('load', function() {
+                updateCalculation();
+            });
+
+            // 附加：回车触发计算
+            document.getElementById('monthlyIncome').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    updateCalculation();
+                }
+            });
+
+        })();
+    </script>
+    <!-- 注：所有描述及换算基于之前对话分析，以大米3元/斤为锚。实际历史银价复杂，此结果仅供趣味穿越。 -->
+</body>
+</html>

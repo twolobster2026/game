@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>弹力球消砖块</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: white;
+        }
+        #gameCanvas {
+            border: 1px solid #ccc;
+        }
+        #resetBtn {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: darkgreen;  /* 修改重置按钮颜色 */
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+        }
+        #timer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: lightblue;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+            color: white;
+        }
+        #score {
+            position: fixed;
+            top: 20px;
+            right: 150px;
+            background-color: orange;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 3px 3px 5px rgba(0,0,0,0.3);
+            color: white;
+        }
+        .gameOver {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: zoom 1s infinite;
+        }
+
+.footer {
+    position: fixed;      /* 固定定位，相对于视口 */
+    bottom: 20px;         /* 距离底部 20px */
+    right: 20px;          /* 距离右侧 20px */
+    background: rgba(0, 0, 0, 0.5);   /* 黑色半透明背景，透明度 0.5 */
+    color: #fff;          /* 白色文字，保证对比度 */
+    padding: 8px 16px;    /* 内边距，让文字不贴边 */
+    border-radius: 20px;  /* 圆角，更柔和 */
+    font-size: 14px;
+    font-family: monospace;
+    backdrop-filter: blur(4px); /* 可选：增加背景模糊效果 */
+    z-index: 1000;        /* 确保在其他内容之上 */
+}
+
+        @keyframes zoom {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <button id="resetBtn">重置游戏</button>
+    <div id="score">得分: 0</div>
+    <div id="timer">00:00</div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let bricks = [];
+        let ball = { x: 0, y: 0, dx: 5, dy: 5, radius: 8 };
+        let paddle = { width: 0, height: 15, x: 0 };
+        let isGameRunning = false;
+        let score = 0;
+        let startTime = 0;
+        let timerInterval;
+        let brickWidth = 0;
+
+        function initGame() {
+            canvas.width = window.innerWidth * 0.95;
+            canvas.height = window.innerHeight * 0.85;
+            
+            ball.x = canvas.width/2;
+            ball.y = canvas.height - 100;
+            
+            brickWidth = canvas.width / 20;
+            paddle.width = brickWidth * 5;
+            paddle.x = (canvas.width - paddle.width)/2;
+            
+            bricks = [];
+            const brickRows = 5;
+            const brickCols = 20;
+            
+            for(let i=0; i<brickRows; i++) {
+                for(let j=0; j<brickCols; j++) {
+                    bricks.push({
+                        x: j * brickWidth,
+                        y: i * 20 + 50,
+                        width: brickWidth - 2,
+                        height: 18,
+                        visible: true
+                    });
+                }
+            }
+            
+            score = 0;
+            document.getElementById('score').textContent = `得分: ${score}`;
+            startTime = Date.now();
+            isGameRunning = true;
+            
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+            ctx.fillStyle = '#333';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawPaddle() {
+            ctx.beginPath();
+            ctx.roundRect(paddle.x, canvas.height - paddle.height, paddle.width, paddle.height, 10);
+            ctx.fillStyle = 'darkblue';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBricks() {
+            bricks.forEach(brick => {
+                if(brick.visible) {
+                    ctx.beginPath();
+                    ctx.roundRect(brick.x, brick.y, brick.width, brick.height, 5);
+                    ctx.fillStyle = 'brown';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            });
+        }
+
+        function collisionDetection() {
+            bricks.forEach(brick => {
+                if(brick.visible && 
+                   ball.x + ball.radius > brick.x &&
+                   ball.x - ball.radius < brick.x + brick.width &&
+                   ball.y + ball.radius > brick.y &&
+                   ball.y - ball.radius < brick.y + brick.height) {
+                    brick.visible = false;
+                    ball.dy = -ball.dy;
+                    score += 5;
+                    document.getElementById('score').textContent = `得分: ${score}`;
+                }
+            });
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime)/1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if(isGameRunning) {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+                
+                if(ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                    ball.dx = -ball.dx;
+                }
+                if(ball.y - ball.radius < 0) {
+                    ball.dy = -ball.dy;
+                }
+                
+                if(ball.y + ball.radius > canvas.height - paddle.height &&
+                   ball.x > paddle.x && 
+                   ball.x < paddle.x + paddle.width) {
+                    ball.dy = -ball.dy;
+                }
+                
+                if(ball.y + ball.radius > canvas.height) {
+                    isGameRunning = false;
+                    clearInterval(timerInterval);
+                    showGameOver();
+                }
+                
+                if(bricks.every(brick => !brick.visible)) {
+                    isGameRunning = false;
+                    clearInterval(timerInterval);
+                    showVictory();
+                }
+                
+                collisionDetection();
+            }
+            
+            drawBricks();
+            drawBall();
+            drawPaddle();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function showGameOver() {
+            const div = document.createElement('div');
+            div.className = 'gameOver';
+            div.style.color = 'green';
+            div.textContent = 'GAME OVER';
+            document.body.appendChild(div);
+        }
+
+        function showVictory() {
+            const div = document.createElement('div');
+            div.className = 'gameOver';
+            div.style.color = 'red';
+            div.textContent = '闯关成功';
+            document.body.appendChild(div);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const step = brickWidth * 2;
+            if(e.key === 'ArrowLeft') {
+                const newX = paddle.x - step;
+                paddle.x = newX < 0 ? 0 : newX;
+            }
+            else if(e.key === 'ArrowRight') {
+                const newX = paddle.x + step;
+                const maxX = canvas.width - paddle.width;
+                paddle.x = newX > maxX ? maxX : newX;
+            }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            document.querySelectorAll('.gameOver').forEach(el => el.remove());
+            initGame();
+        });
+
+        initGame();
+        gameLoop();
+        window.addEventListener('resize', initGame);
+    </script>
+
+<div class="footer">
+    © Twolobster
+</div>
+
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>金龟换酒 · 贺知章同款计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', '华文楷体', 'KaiTi', 'Microsoft YaHei', serif;
+            background: #efe3d3;
+            background-image: radial-gradient(circle at 10% 30%, #f3e7d9 0%, #dacbb6 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .card {
+            max-width: 750px;
+            width: 100%;
+            background: rgba(255, 248, 235, 0.9);
+            backdrop-filter: blur(6px);
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 20px 35px rgba(70, 40, 20, 0.3), 0 4px 12px #a9927b, inset 0 1px 6px #fff8e7;
+            border: 1px solid #decbb2;
+            overflow: hidden;
+        }
+        .header {
+            background: #a77b55;
+            background: linear-gradient(155deg, #9f7650, #b48d67);
+            padding: 28px 22px 16px;
+            text-align: center;
+            border-bottom: 4px solid #6a4e34;
+            color: #fdf3e0;
+            text-shadow: 2px 2px 0 #5a3e28;
+        }
+        .header h1 {
+            font-size: 2.6rem;
+            font-weight: 500;
+            letter-spacing: 6px;
+            font-family: '华文楷体', 'KaiTi', cursive;
+            margin-bottom: 6px;
+        }
+        .header .sub {
+            font-size: 1.2rem;
+            background: #382b1d80;
+            display: inline-block;
+            padding: 6px 22px;
+            border-radius: 50px;
+            border: 1px solid #ebcbaa;
+            backdrop-filter: blur(2px);
+        }
+        .content {
+            padding: 30px 28px 20px;
+        }
+        .input-panel {
+            background: #dac6b0;
+            border-radius: 60px 60px 30px 30px;
+            padding: 22px 26px;
+            box-shadow: inset 0 2px 8px #b39678, 0 8px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .field {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        .field label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #3b2c1c;
+            background: #f1e3d1;
+            padding: 10px 22px;
+            border-radius: 50px;
+            box-shadow: inset 0 2px 5px #a38668;
+            letter-spacing: 1px;
+        }
+        .field input {
+            flex: 2 1 250px;
+            padding: 16px 22px;
+            font-size: 1.6rem;
+            border: none;
+            background: #fffcf0;
+            border-radius: 60px;
+            box-shadow: inset 0 4px 8px #a58362, 0 2px 6px #ffefdb;
+            font-weight: bold;
+            color: #2e2116;
+            outline: 2px solid transparent;
+            font-family: 'Courier New', monospace;
+        }
+        .field input:focus {
+            outline: 2px solid #b8895b;
+            background: #ffffff;
+        }
+        .field input::placeholder {
+            color: #9a8874;
+            font-size: 1.2rem;
+        }
+        .calc-btn {
+            background: #6f4f31;
+            border: none;
+            color: #fff7e6;
+            font-size: 1.5rem;
+            padding: 16px 34px;
+            border-radius: 60px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 7px 0 #3f2e1d, 0 6px 12px #3b2e1f;
+            transition: 0.07s linear;
+            border: 1px solid #b78f64;
+            font-family: '华文楷体', 'KaiTi', serif;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .calc-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 1px 0 #3f2e1d, 0 6px 12px #3b2e1f;
+        }
+        .calc-btn:hover {
+            background: #846341;
+        }
+        .result-area {
+            background: #e9d9c2;
+            border-radius: 36px 36px 28px 28px;
+            padding: 26px 25px;
+            margin: 30px 0 25px;
+            border: 1px solid #faead3;
+            box-shadow: inset 0 1px 8px #f7e7d2, 0 8px 0 #876e51, 0 10px 18px #5f4b36;
+        }
+        .result-main {
+            background: #fff5e8;
+            border-radius: 30px;
+            padding: 25px;
+            box-shadow: inset 0 2px 8px #c7ab8b;
+        }
+        .result-line {
+            font-size: 1.6rem;
+            color: #3a2c1d;
+            line-height: 2.2rem;
+            margin-bottom: 15px;
+        }
+        .result-line strong {
+            color: #ac5700;
+            font-size: 2rem;
+            background: #f0d8bc;
+            padding: 4px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 0 6px;
+        }
+        .highlight {
+            background: #c7a67b;
+            color: #1f140e;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            display: inline-block;
+        }
+        .fun-note {
+            margin-top: 18px;
+            font-size: 1.25rem;
+            background: #f2e0ce;
+            border-radius: 30px;
+            padding: 15px 20px;
+            border-left: 8px solid #b27d51;
+            color: #2b1d12;
+        }
+        .evidence {
+            background: #d3bea5;
+            border-radius: 28px 28px 18px 18px;
+            padding: 22px 25px;
+            margin: 20px 0 10px;
+            border: 1px solid #edddc9;
+        }
+        .evidence h3 {
+            font-size: 1.6rem;
+            color: #2a1e13;
+            border-left: 10px solid #9b7b58;
+            padding-left: 16px;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        .evidence p {
+            font-size: 1.1rem;
+            background: #f9efdf;
+            padding: 14px 18px;
+            border-radius: 24px;
+            margin-bottom: 12px;
+            box-shadow: inset 0 1px 4px #ab8e72;
+            line-height: 1.7;
+        }
+        .evidence .ref {
+            background: #e6d1b9;
+            border-radius: 20px;
+            padding: 12px 16px;
+            color: #3e2e1f;
+            font-size: 1rem;
+            border: 1px dashed #a4805c;
+        }
+        .footnote {
+            text-align: center;
+            color: #2b1f14;
+            padding: 10px;
+            font-size: 0.95rem;
+        }
+        .copyright {
+            text-align: center;
+            padding: 18px 20px;
+            background: #8e7b64a0;
+            color: #291f15;
+            font-size: 1.1rem;
+            border-top: 1px solid #b19d83;
+            font-family: monospace;
+            letter-spacing: 1px;
+            backdrop-filter: blur(2px);
+        }
+        .unit-note {
+            font-size: 0.9rem;
+            color: #5f4c38;
+            margin-top: 10px;
+        }
+        @media (max-width: 550px) {
+            .header h1 { font-size: 2rem; }
+            .result-line { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>金龟换酒</h1>
+        <div class="sub">贺知章同款 · 月薪兑换机</div>
+    </div>
+    <div class="content">
+        <div class="input-panel">
+            <div class="field">
+                <label for="income">💰 月收入 (元)</label>
+                <input type="number" id="income" placeholder="例如 10000" value="10000" min="0" step="500">
+            </div>
+            <button class="calc-btn" id="calcBtn">算算能换几只金龟</button>
+        </div>
+
+        <div class="result-area" id="resultBox">
+            <div class="result-main">
+                <div class="result-line" id="resultLine">
+                    你的月收入折合唐代 <strong id="tangSilver">1.41</strong> 两白银
+                </div>
+                <div class="result-line">
+                    可以换 <strong id="goldenTurtleNum">0.06</strong> 只 贺知章金龟
+                </div>
+                <div class="fun-note" id="funNote">
+                    ✨ 相当于当年那只金龟的 0.06 倍，离请李白喝一顿还差 16 只左右～
+                </div>
+            </div>
+        </div>
+
+        <!-- 计算依据 + 实际价值判断 -->
+        <div class="evidence">
+            <h3>📏 金龟价值 · 推算依据</h3>
+            <p><strong>① 实物重量</strong>：1988年四川绵竹出土唐代金龟，重约160克，含金量85%以上。</p>
+            <p><strong>② 唐代度量</strong>：1两（唐大两）≈ 42.5克。金龟重 160÷42.5 ≈ <strong>3.8唐两</strong>，纯金约 3.2两（按85%计）。</p>
+            <p><strong>③ 金银比价</strong>：唐代黄金:白银 ≈ 1:5~1:6，取1:5.5，纯金3.2两可换白银 <strong>17.6两</strong>（材料价值）。</p>
+            <p><strong>④ 身份溢价（实际价值）</strong>：贺知章为三品大员，金龟是身份象征，类似今日名表限量款。加上唐代金龟存世极少，文物/工艺/官阶溢价明显，故估算其实际价值约为 <strong>20~30两白银</strong>。本计算器取中值 <strong>25两</strong> 作为贺知章金龟的“实际换酒价值”。</p>
+            <div class="ref">
+                唐代银两购买力：以贞观年间米价5文/斗、1两=1000文、1斗米≈5.9公斤（11.8市斤），结合现代米价3元/斤，得出 1两白银 ≈ 7080元人民币。此为穿越换算基准。
+            </div>
+        </div>
+
+        <div class="footnote">
+            ✦ 金龟个数结果保留两位小数，纯属历史趣味，博君一乐 ✦
+        </div>
+    </div>
+    <div class="copyright">
+            © Twolobster ｜ 我是李工也是涛哥
+    </div>
+</div>
+
+<script>
+    (function() {
+        // 固定常数
+        const TANG_SILVER_PER_LIANG = 7080;      // 1两白银 ≈ 7080元 (贞观米价3元/斤)
+        const GOLDEN_TURTLE_VALUE_IN_LIANG = 25; // 一只贺知章金龟实际价值 25两 (取20~30中值)
+
+        const incomeInput = document.getElementById('income');
+        const calcBtn = document.getElementById('calcBtn');
+
+        const tangSilverSpan = document.getElementById('tangSilver');
+        const turtleNumSpan = document.getElementById('goldenTurtleNum');
+        const funNoteDiv = document.getElementById('funNote');
+
+        // 更新计算结果
+        function updateCalculation() {
+            let income = parseFloat(incomeInput.value);
+            if (isNaN(income) || income < 0) {
+                income = 0;
+                incomeInput.value = 0;
+            } else if (income > 1e9) {
+                income = 1e9;
+                incomeInput.value = 1e9;
+            }
+
+            // 折合唐代银两
+            const liang = income / TANG_SILVER_PER_LIANG;
+            // 能换几只金龟
+            const turtleCount = liang / GOLDEN_TURTLE_VALUE_IN_LIANG;
+
+            // 更新数字显示 (保留两位小数)
+            tangSilverSpan.innerText = liang.toFixed(2);
+            turtleNumSpan.innerText = turtleCount.toFixed(2);
+
+            // 生成趣味脚注
+            if (turtleCount < 0.01) {
+                funNoteDiv.innerText = `🐢 连龟壳的粉末都算不上……攒钱吧少年！`;
+            } else if (turtleCount < 0.1) {
+                funNoteDiv.innerText = `✨ 相当于当年那只金龟的 ${turtleCount.toFixed(2)} 倍，大约能换回一片龟鳞。`;
+            } else if (turtleCount < 0.5) {
+                funNoteDiv.innerText = `🍂 约等于 ${turtleCount.toFixed(2)} 只金龟，请李白喝一顿酒还差点意思。`;
+            } else if (turtleCount < 1) {
+                funNoteDiv.innerText = `🍷 快够上一只了！再添把劲就能和贺知章抢着买单。`;
+            } else if (turtleCount < 2) {
+                funNoteDiv.innerText = `🎉 你已经有 ${turtleCount.toFixed(2)} 只金龟！贺知章见了都要喊你一声“贤弟”。`;
+            } else if (turtleCount < 5) {
+                funNoteDiv.innerText = `🏮 阔绰！${turtleCount.toFixed(2)} 只金龟，可以包下长安东市最大的酒肆，连喝一个月。`;
+            } else {
+                funNoteDiv.innerText = `💰 土豪！你拥有 ${turtleCount.toFixed(2)} 只金龟，李白表示愿意天天跟你混。`;
+            }
+
+            // 附加酒斗彩蛋 (一斗酒200文 = 0.2两)
+            const douPerLiang = 5; // 1两买5斗
+            const totalDou = liang * douPerLiang;
+            if (liang > 0) {
+                // 保留一位小数
+                funNoteDiv.innerText += ` 按唐酒价，可买 ${totalDou.toFixed(1)} 斗酒，约 ${(totalDou*5.9).toFixed(0)} 斤。`;
+            }
+        }
+
+        // 绑定事件
+        calcBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            updateCalculation();
+        });
+
+        incomeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                updateCalculation();
+            }
+        });
+
+        // 页面加载计算一次
+        window.addEventListener('load', function() {
+            updateCalculation();
+        });
+    })();
+</script>
+<!-- 备注：金龟价值估算基于考古出土及唐代金银比价，身份溢价参考历史典故。实际价值取25两为趣味中值。 -->
+</body>
+</html>
