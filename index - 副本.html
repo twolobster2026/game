@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Twolobster｜Game Station</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px 40px;
+            background: #ffffff;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 页面主标题 */
+        h1 {
+            font-size: 40px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        .subhead {
+            font-size: 16px;
+            color: #666;
+            margin-top: 0;
+            margin-bottom: 40px;
+            border-left: 4px solid #bbb;
+            padding-left: 20px;
+            max-width: 680px;
+            line-height: 1.7;
+        }
+
+        /* 卡片网格 */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+            margin-top: 20px;
+        }
+
+        .game-card {
+            border: 1px solid #eee;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 10px 26px rgba(0,0,0,0.04);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 18px 36px rgba(0,0,0,0.08);
+        }
+
+        /* 封面区域 —— 默认16:9，用emoji占位，可替换为真实截图 */
+        .cover {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;          /* 16:9 比例 */
+            background-color: #d6cdbb;     /* 默认底色，会被具体游戏内联覆盖 */
+            transition: background 0.2s;
+        }
+
+        .cover-emoji {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            background-color: rgba(0,0,0,0.02);
+            text-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 去掉可能继承的伪元素 */
+        .cover::after {
+            display: none !important;
+        }
+
+        /* 卡片内容区 */
+        .game-content {
+            padding: 22px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .tag {
+            display: inline-block;
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #f1f1f1;
+            color: #555;
+            margin-bottom: 12px;
+            width: fit-content;
+            letter-spacing: 0.3px;
+        }
+
+        .game-content h3 {
+            font-size: 22px;
+            margin: 0 0 10px;
+            font-weight: 500;
+        }
+
+        .game-desc {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .operation {
+            font-size: 13px;
+            color: #6f6f6f;
+            background: #f8f8f8;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            border-left: 3px solid #b3a68f;
+        }
+
+        .action {
+            margin-top: auto;
+        }
+
+        .action a {
+            display: inline-block;
+            padding: 10px 22px;
+            background: #2b8fed;
+            color: #fff;
+            border-radius: 24px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+            border: 1px solid #2b8fed;
+        }
+
+        .action a:hover {
+            background: #5aa9f0;
+            border-color: #5aa9f0;
+        }
+
+        /* 封面链接样式 —— 块级，去掉下划线 */
+        .cover-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        /* 固定页脚 (同视频页面风格) */
+   .footer {
+    border-top: 1px solid #eee;
+    padding: 30px 20px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    background: #ffffff;
+    margin-top: 40px;
+}
+
+        @media (max-width: 700px) {
+            h1 { font-size: 32px; }
+            .subhead { font-size: 15px; }
+            .footer {
+                padding: 20px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 游园雅集 头部 (与视频页保持一致) -->
+    <h1>Twolobster Game Station</h1>
+    <div class="subhead">
+        自制精品好游，一键跳转，随心畅玩。
+    </div>
+
+    <!-- 游戏卡片网格 (共9个游戏) -->
+    <div class="game-grid">
+        <!-- 1. 决胜十二码 Goal Duel-->
+        <div class="game-card">
+            <a href="01决胜十二码 Goal Duel.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/football_cover.jpg" alt="点球大战" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">体育 · 模拟</span>
+                <h3>决胜十二码 · 点球大战</h3>
+                <div class="game-desc">
+                    化身国安或中超列强射手，与智能守门员展开点球对决。感受点球大战的紧张氛围，考验你的射门时机与运气。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：国安队射门按数字键 <strong>5</strong>，中超列强队射门按数字键 <strong>3</strong>。游戏自动开始，每队5次射门机会。
+                </div>
+                <div class="action">
+                    <a href="01决胜十二码 Goal Duel.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+<!-- 2. 切西瓜 (双人卡牌对战) -->
+<div class="game-card">
+    <a href="02切西瓜.html" class="cover-link">
+        <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/watermelon_cover.jpg" alt="切西瓜 · 双人对战" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        </div>
+    </a>
+    <div class="game-content">
+        <span class="tag">对战 · 卡牌</span>
+        <h3>切西瓜 · 双人对战</h3>
+        <div class="game-desc">
+            两人轮流行动，使用小刀、闪电、锅盖、引雷针、时光包袱布等卡牌，攻守博弈。率先将对手的两块西瓜全部切块者获胜！策略与运气的趣味对决。
+        </div>
+        <div class="operation">
+            🖱️ 操作：点击手牌选中，使用/弃置；结束回合前需保留规定手牌数；利用道具保护或干扰对方西瓜，闪电可清全场引雷针道具。
+        </div>
+        <div class="action">
+            <a href="02切西瓜.html">进入游戏</a>
+        </div>
+    </div>
+</div>
+
+        <!-- 3. 俸禄穿越计算器-->
+        <div class="game-card">
+            <a href="03俸禄穿越计算器.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/money_cover.jpg" alt="俸禄穿越计算器" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">换算 · 历史</span>
+                <h3>俸禄穿越计算器</h3>
+                <div class="game-desc">
+                    输入你的月收入，瞬间穿越回汉、唐、明、清，看能换多少两银子，体验不同阶层的生活光景。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：输入人民币金额，点击「换算」按钮，四朝银两与生活图鉴即刻呈现。
+                </div>
+                <div class="action">
+                    <a href="03俸禄穿越计算器.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 金龟换酒计算器-->
+        <div class="game-card">
+            <a href="04金龟换酒计算器.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/turtle_cover.jpg" alt="金龟换酒计算器" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">换算 · 历史</span>
+                <h3>金龟换酒计算器</h3>
+                <div class="game-desc">
+                    输入你的月收入，看能换多少只贺知章的金龟？一秒穿越回唐代，体验诗仙同款豪气。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：输入人民币金额，点击「算算能换几只金龟」按钮，即可看到折合的唐代银两、金龟数量，以及趣味点评。
+                </div>
+                <div class="action">
+                    <a href="04金龟换酒计算器.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 弹力球消砖块-->
+        <div class="game-card">
+            <a href="05消除砖块网页游戏.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/bandball_cover.jpg" alt="弹力球消砖块" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">经典 · 反应</span>
+                <h3>弹力球消砖块</h3>
+                <div class="game-desc">
+                    移动挡板反弹小球，击碎所有砖块。复古街机玩法，挑战你的反应与精准度，在砰砰声中释放压力。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：← → 方向键移动挡板，反弹小球撞碎砖块。每击碎一块得5分，全部击碎即胜利。
+                </div>
+                <div class="action">
+                    <a href="05消除砖块网页游戏.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 砖块人大格斗-->
+        <div class="game-card">
+            <a href="06砖块人大格斗.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/fight_cover.jpg" alt="砖块人大格斗" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">射击 · 动作</span>
+                <h3>砖块人大格斗</h3>
+                <div class="game-desc">
+                    控制砖块战士，发射子弹与火箭，抵御一波波敌人的进攻。红色敌人更耐打，绿色敌人更脆弱。在限时内争取最高分！
+                </div>
+                <div class="operation">
+                    🖱️ 操作：←→↑↓ 方向键移动，A键射击（三向子弹），S键发射火箭（限量10发）。击败敌人获得分数。
+                </div>
+                <div class="action">
+                    <a href="06砖块人大格斗.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. 寻开心-->
+        <div class="game-card">
+            <a href="07寻开心.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/smile_cover.jpg" alt="寻开心" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">寻找 · 专注</span>
+                <h3>寻开心</h3>
+                <div class="game-desc">
+                    在限时内从众多😟中找出所有隐藏的😊，每关难度递增，考验眼力与耐心。层层闯关，直到集满所有开心。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：点击所有笑脸😊即可过关，限时内找全所有笑脸则进入下一关，超时则游戏结束。
+                </div>
+                <div class="action">
+                    <a href="07寻开心.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. 舒尔特方格练习-->
+        <div class="game-card">
+            <a href="08舒尔特方格练习.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/Schulte-Grid_cover.jpg" alt="舒尔特方格练习" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">专注 · 训练</span>
+                <h3>舒尔特方格练习</h3>
+                <div class="game-desc">
+                    按顺序从1点击到25，测试你的专注力与反应速度。挑战自我，刷新纪录，让大脑保持敏锐。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：按顺序点击数字1→25，计时自动开始；点击「重新开始」按钮可刷新挑战。
+                </div>
+                <div class="action">
+                    <a href="08舒尔特方格练习.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+
+        <!--9. 质数大挑战-->
+        <div class="game-card">
+            <a href="09质数练习.html" class="cover-link">
+            <div class="cover" style="position: relative; overflow: hidden;">
+            <img src="images/math_cover.jpg" alt="质数练习" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            </a>
+            <div class="game-content">
+                <span class="tag">数学 · 判断</span>
+                <h3>质数大挑战</h3>
+                <div class="game-desc">
+                    在8×8的数字网格中，快速找出所有质数。测试你的数学敏感度，绿色标记正确，红色标记错误，全部找对即可通关。
+                </div>
+                <div class="operation">
+                    🖱️ 操作：点击数字进行判断，质数会变为绿色，非质数变为红色。找出所有质数即胜利，计时自动开始。
+                </div>
+                <div class="action">
+                    <a href="09质数练习.html">进入游戏</a>
+                </div>
+            </div>
+        </div>
+    </div>  <!-- end game-grid -->
+
+</div>  <!-- end container -->
+
+<!-- 固定页脚 (与平台风格一致) -->
+<div class="footer">
+    © Twolobster ｜ Game Station ｜ 我是李工也是涛哥
+</div>
+
+<!-- ========== 说明：如何替换为真实截图 ========== -->
+<!-- 
+    每个游戏卡片中的 <div class="cover" style="background-color: ..."> 
+    内部是一个 <span class="cover-emoji"> 占位符。
+    要替换为真实截图，请按以下步骤操作：
+    1. 将截图（建议16:9比例，如640×360）放入 images/ 文件夹。
+    2. 移除该 <div> 内的 style 和 <span> 内容。
+    3. 改为 <img src="images/你的截图文件名.jpg" alt="游戏名称" style="width:100%; height:100%; object-fit: cover; display: block;">
+    4. 确保外层 <a> 标签仍然包裹着这个 <div>。
+    示例（以俸禄穿越计算器为例）：
+        <a href="salary_calculator.html" class="cover-link">
+            <div class="cover">
+                <img src="images/salary_cover.jpg" alt="俸禄穿越计算器" style="width:100%; height:100%; object-fit: cover; display: block;">
+            </div>
+        </a>
+    其他卡片同理。
+-->
+
+</body>
+</html>
