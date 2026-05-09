@@ -12,7 +12,7 @@
 
         body {
             margin: 0;
-            padding: 40px 20px 120px;
+            padding: 40px 20px 40px;
             background: #ffffff;
             color: #222;
         }
@@ -164,29 +164,21 @@
         }
 
         /* 固定页脚 (同视频页面风格) */
-        .footer {
-            position: fixed;
-            bottom: 14px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 13px;
-            color: #777;
-            background: rgba(255,255,255,0.8);
-            padding: 6px 18px;
-            border-radius: 40px;
-            backdrop-filter: blur(4px);
-            border: 1px solid #eee;
-            white-space: nowrap;
-        }
+   .footer {
+    border-top: 1px solid #eee;
+    padding: 30px 20px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    background: #ffffff;
+    margin-top: 40px;
+}
 
         @media (max-width: 700px) {
             h1 { font-size: 32px; }
             .subhead { font-size: 15px; }
             .footer {
-                white-space: normal;
-                text-align: center;
-                line-height: 1.5;
-                padding: 8px 16px;
+                padding: 20px 16px;
             }
         }
     </style>
